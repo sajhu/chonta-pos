@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "../lib/api.js";
 import { useAuth } from "../lib/auth.js";
 import { getToken } from "../lib/auth.js";
+import { StatCardsSkeleton } from "../components/Skeleton.js";
 import type { CajaActual, CashSession } from "../lib/types.js";
 
 const formatCOP = (n: number) =>
@@ -16,6 +17,7 @@ export function Caja() {
   const [error, setError] = useState<string | null>(null);
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [lastClosed, setLastClosed] = useState<CashSession | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     const data = await api.get<CajaActual>("/caja/actual");
@@ -24,6 +26,7 @@ export function Caja() {
       const h = await api.get<CashSession[]>("/caja/historial");
       setHistorial(h);
     }
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -78,7 +81,9 @@ export function Caja() {
 
       {error && <div className="text-red-600 text-sm">{error}</div>}
 
-      {!actual?.session ? (
+      {!loaded ? (
+        <StatCardsSkeleton count={4} />
+      ) : !actual?.session ? (
         <div className="bg-white rounded-xl border p-4 space-y-3">
           <div className="text-slate-600">No hay una caja abierta.</div>
           {user?.role === "ADMIN" ? (

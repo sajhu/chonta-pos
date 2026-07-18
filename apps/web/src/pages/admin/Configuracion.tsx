@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "../../lib/api.js";
 import { getAutoPrint, setAutoPrint } from "../../lib/settings.js";
 import { DangerReset } from "../../components/DangerReset.js";
+import { ListSkeleton } from "../../components/Skeleton.js";
 import type { AppUser } from "../../lib/types.js";
 
 export function Configuracion() {
   const [users, setUsers] = useState<AppUser[]>([]);
+  const [usersLoaded, setUsersLoaded] = useState(false);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [role, setRole] = useState<"ADMIN" | "CAJERO">("CAJERO");
@@ -14,6 +16,7 @@ export function Configuracion() {
 
   async function load() {
     setUsers(await api.get<AppUser[]>("/usuarios"));
+    setUsersLoaded(true);
   }
 
   useEffect(() => {
@@ -116,6 +119,8 @@ export function Configuracion() {
           endpoint="/caja/reset-ventas"
         />
       </div>
+
+      {!usersLoaded && <ListSkeleton rows={2} />}
 
       <div className="bg-white rounded-xl border divide-y">
         {users.map((u) => (

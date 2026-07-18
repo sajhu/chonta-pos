@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { api } from "../lib/api.js";
+import { Skeleton, StatCardsSkeleton } from "../components/Skeleton.js";
 
 const formatCOP = (n: number) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
@@ -37,6 +38,7 @@ const COLORS = ["#0f172a", "#0ea5e9", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6"
 export function Dashboard() {
   const [rows, setRows] = useState<HourRow[]>([]);
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [metric, setMetric] = useState<"units" | "total">("units");
 
   async function load() {
@@ -46,6 +48,7 @@ export function Dashboard() {
     ]);
     setRows(hourRows);
     setResumen(summary);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -86,32 +89,47 @@ export function Dashboard() {
         </div>
       </div>
 
-      {resumen && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Ventas" value={String(resumen.totalVentas)} />
-          <StatCard label="Ingresos" value={formatCOP(resumen.totalIngresos)} />
-          <StatCard label="Cortesías" value={String(resumen.totalCortesias)} />
-          <StatCard label="Anuladas" value={String(resumen.totalAnuladas)} />
-        </div>
+      {!loaded ? (
+        <StatCardsSkeleton />
+      ) : (
+        resumen && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard label="Ventas" value={String(resumen.totalVentas)} />
+            <StatCard label="Ingresos" value={formatCOP(resumen.totalIngresos)} />
+            <StatCard label="Cortesías" value={String(resumen.totalCortesias)} />
+            <StatCard label="Anuladas" value={String(resumen.totalAnuladas)} />
+          </div>
+        )
       )}
 
       <div className="bg-white rounded-xl border p-4">
         <h2 className="font-semibold mb-3">Ventas por hora ({metric === "units" ? "unidades" : "valor $"}) por categoría</h2>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
-              <YAxis />
-              <Tooltip formatter={(v: number) => (metric === "total" ? formatCOP(v) : v)} />
-              <Legend />
-              {categories.map((cat, i) => (
-                <Bar key={cat} dataKey={cat} fill={COLORS[i % COLORS.length]} stackId="a" />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {!loaded ? (
+          <Skeleton className="h-80 w-full" />
+        ) : (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="hour" />
+                <YAxis />
+                <Tooltip formatter={(v: number) => (metric === "total" ? formatCOP(v) : v)} />
+                <Legend />
+                {categories.map((cat, i) => (
+                  <Bar key={cat} dataKey={cat} fill={COLORS[i % COLORS.length]} stackId="a" />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
+
+      {!loaded && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      )}
 
       {resumen && (
         <div className="grid md:grid-cols-2 gap-4">

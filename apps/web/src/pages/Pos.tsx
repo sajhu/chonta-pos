@@ -6,6 +6,7 @@ import { getAutoPrint } from "../lib/settings.js";
 import { usePrintReceipt } from "../lib/usePrintReceipt.js";
 import { Receipt } from "../components/Receipt.js";
 import { AdminPinModal } from "../components/AdminPinModal.js";
+import { ProductGridSkeleton } from "../components/Skeleton.js";
 import type { CajaActual, DiscountType, Order, PaymentMethod, Product } from "../lib/types.js";
 
 const formatCOP = (n: number) =>
@@ -19,6 +20,7 @@ interface CartLine {
 export function Pos() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
@@ -47,6 +49,7 @@ export function Pos() {
 
   async function loadProducts() {
     setProducts(await api.get<Product[]>("/products"));
+    setProductsLoaded(true);
   }
 
   async function loadCaja() {
@@ -203,40 +206,44 @@ export function Pos() {
           ))}
         </div>
 
-        {categories.map((cat) => (
-          <div
-            key={cat.id}
-            ref={(el) => {
-              sectionRefs.current[cat.id] = el;
-            }}
-            className="mb-6 scroll-mt-16"
-          >
-            <h2 className="text-sm font-semibold text-slate-500 mb-2">{cat.name}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-              {products
-                .filter((p) => p.categoryId === cat.id)
-                .map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => addToCart(p.id)}
-                    className="text-left bg-white rounded-xl shadow border p-3 active:scale-[0.98] flex flex-col sm:flex-row sm:items-center gap-3"
-                  >
-                    {p.imageUrl && (
-                      <img
-                        src={p.imageUrl}
-                        alt=""
-                        className="w-full h-20 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0"
-                      />
-                    )}
-                    <div>
-                      <div className="font-semibold">{p.name}</div>
-                      <div className="text-slate-500">{formatCOP(p.price)}</div>
-                    </div>
-                  </button>
-                ))}
+        {!productsLoaded ? (
+          <ProductGridSkeleton />
+        ) : (
+          categories.map((cat) => (
+            <div
+              key={cat.id}
+              ref={(el) => {
+                sectionRefs.current[cat.id] = el;
+              }}
+              className="mb-6 scroll-mt-16"
+            >
+              <h2 className="text-sm font-semibold text-slate-500 mb-2">{cat.name}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                {products
+                  .filter((p) => p.categoryId === cat.id)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => addToCart(p.id)}
+                      className="text-left bg-white rounded-xl shadow border p-3 active:scale-[0.98] flex flex-col sm:flex-row sm:items-center gap-3"
+                    >
+                      {p.imageUrl && (
+                        <img
+                          src={p.imageUrl}
+                          alt=""
+                          className="w-full h-20 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0"
+                        />
+                      )}
+                      <div>
+                        <div className="font-semibold">{p.name}</div>
+                        <div className="text-slate-500">{formatCOP(p.price)}</div>
+                      </div>
+                    </button>
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l flex flex-col p-3 gap-3 lg:overflow-y-auto">

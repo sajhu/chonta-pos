@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../../lib/api.js";
+import { ListSkeleton } from "../../components/Skeleton.js";
 import type { Insumo, InsumoUnit } from "../../lib/types.js";
 
 interface EditDraft {
@@ -21,9 +22,11 @@ export function Insumos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft>({ minThreshold: 0, packageLabel: "", packageSize: "" });
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     setInsumos(await api.get<Insumo[]>("/insumos"));
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -164,6 +167,8 @@ export function Insumos() {
       </div>
 
       {error && <div className="text-red-600 text-sm">{error}</div>}
+
+      {!loaded && <ListSkeleton rows={8} />}
 
       <div className="bg-white rounded-xl border divide-y">
         {insumos.map((ins) => {

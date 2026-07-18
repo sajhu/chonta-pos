@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "../../lib/api.js";
+import { ListSkeleton } from "../../components/Skeleton.js";
 import type { Category, Insumo, Product } from "../../lib/types.js";
 
 const formatCOP = (n: number) =>
@@ -19,6 +20,7 @@ export function Menu() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [draft, setDraft] = useState(emptyDraft);
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   async function loadAll() {
@@ -30,6 +32,7 @@ export function Menu() {
     setCategories(cats);
     setInsumos(ins);
     setProducts(prods);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -228,6 +231,8 @@ export function Menu() {
           )}
         </div>
       </div>
+
+      {!loaded && <ListSkeleton rows={6} />}
 
       <div className="bg-white rounded-xl border p-4">
         <h2 className="font-semibold mb-2">Productos</h2>
