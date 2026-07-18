@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print, #receipt-print * {
+    visibility: visible;
+  }
+  #receipt-print {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 80mm;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

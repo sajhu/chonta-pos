@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CAJERO
+}
+
+enum InsumoUnit {
+  ML
+  UNIDAD
+  GR
+}
+
+enum MovementType {
+  CARGA_INICIAL
+  VENTA
+  BAJA
+  ANULACION
+  AJUSTE
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TRANSFERENCIA
+}
+
+enum DiscountType {
+  NONE
+  CORTESIA
+  MANUAL
+}
+
+enum OrderStatus {
+  COMPLETADA
+  ANULADA
+}
+
+enum CashSessionStatus {
+  ABIERTA
+  CERRADA
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  pinHash   String
+  role      Role
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  orders           Order[]          @relation("cashier")
+  cancelledOrders  Order[]          @relation("cancelledBy")
+  authorizedOrders Order[]          @relation("authorizedBy")
+  movements        InventoryMovement[]
+  openedSessions   CashSession[]    @relation("openedBy")
+  closedSessions   CashSession[]    @relation("closedBy")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+model Insumo {
+  id            String       @id @default(uuid())
+  name          String       @unique
+  unit          InsumoUnit
+  stockQty      Float        @default(0)
+  minThreshold  Float        @default(0)
+  packageLabel  String?
+  packageSize   Float?
+  createdAt     DateTime     @default(now())
+
+  recipeItems   RecipeItem[]
+  movements     InventoryMovement[]
+}
+
+model Product {
+  id          String       @id @default(uuid())
+  name        String
+  categoryId  String
+  category    Category     @relation(fields: [categoryId], references: [id])
+  price       Float
+  active      Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  recipeItems RecipeItem[]
+}
+
+model RecipeItem {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  insumoId  String
+  insumo    Insumo  @relation(fields: [insumoId], references: [id])
+  quantity  Float
+
+  @@unique([productId, insumoId])
+}
+
+model InventoryMovement {
+  id             String       @id @default(uuid())
+  insumoId       String
+  insumo         Insumo       @relation(fields: [insumoId], references: [id])
+  type           MovementType
+  quantityDelta  Float
+  note           String?
+  orderId        String?
+  order          Order?       @relation(fields: [orderId], references: [id])
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model CashSession {
+  id                    String            @id @default(uuid())
+  openingBase           Float
+  openedByUserId        String
+  openedBy              User              @relation("openedBy", fields: [openedByUserId], references: [id])
+  openedAt              DateTime          @default(now())
+  status                CashSessionStatus @default(ABIERTA)
+  closedByUserId        String?
+  closedBy              User?             @relation("closedBy", fields: [closedByUserId], references: [id])
+  closedAt              DateTime?
+  notes                 String?
+  consolidatedSnapshot  Json?
+
+  orders                Order[]
+}
+
+model Order {
+  id               String        @id @default(uuid())
+  turnNumber       Int
+  cashSessionId    String
+  cashSession      CashSession   @relation(fields: [cashSessionId], references: [id])
+  items            Json
+  paymentMethod    PaymentMethod
+  discountType     DiscountType  @default(NONE)
+  discountAmount   Float         @default(0)
+  discountReason   String?
+  subtotal         Float
+  total            Float
+  status           OrderStatus   @default(COMPLETADA)
+  cancelReason     String?
+  cancelledAt      DateTime?
+  cancelledByUserId String?
+  cancelledBy      User?         @relation("cancelledBy", fields: [cancelledByUserId], references: [id])
+  cashierId        String
+  cashier          User          @relation("cashier", fields: [cashierId], references: [id])
+  authorizedByUserId String?
+  authorizedBy     User?         @relation("authorizedBy", fields: [authorizedByUserId], references: [id])
+  clientRequestId  String        @unique
+  createdAt        DateTime      @default(now())
+
+  movements        InventoryMovement[]
+
+  @@unique([cashSessionId, turnNumber])
+}
