@@ -3,8 +3,8 @@ import { api, ApiError } from "../lib/api.js";
 import { useAuth } from "../lib/auth.js";
 import { enqueue, subscribeOutbox } from "../lib/outbox.js";
 import { getAutoPrint } from "../lib/settings.js";
+import { usePrintReceipt } from "../lib/usePrintReceipt.js";
 import { Receipt } from "../components/Receipt.js";
-import { RecentOrders } from "../components/RecentOrders.js";
 import type { CajaActual, DiscountType, Order, PaymentMethod, Product } from "../lib/types.js";
 
 const formatCOP = (n: number) =>
@@ -27,11 +27,9 @@ export function Pos() {
   const [authorizerPin, setAuthorizerPin] = useState("");
   const [cashActual, setCashActual] = useState<CajaActual | null>(null);
   const [pendingVentas, setPendingVentas] = useState(0);
-  const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
-  const [panelTab, setPanelTab] = useState<"carrito" | "historico">("carrito");
+  const { lastOrder, setLastOrder, printReceipt } = usePrintReceipt();
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -50,14 +48,7 @@ export function Pos() {
   }
 
   async function loadCaja() {
-    const data = await api.get<CajaActual>("/caja/actual");
-    setCashActual(data);
-    if (data.session) {
-      const orders = await api.get<Order[]>(`/ventas?cashSessionId=${data.session.id}`);
-      setRecentOrders(orders);
-    } else {
-      setRecentOrders([]);
-    }
+    setCashActual(await api.get<CajaActual>("/caja/actual"));
   }
 
   useEffect(() => {
@@ -106,11 +97,6 @@ export function Pos() {
     setDiscountAmount(0);
     setDiscountReason("");
     setAuthorizerPin("");
-  }
-
-  function printReceipt(order: Order) {
-    setLastOrder(order);
-    setTimeout(() => window.print(), 150);
   }
 
   async function confirmSale() {
@@ -182,15 +168,9 @@ export function Pos() {
 
     resetSaleForm();
     setSubmitting(false);
-    setRecentOrders((prev) => [finalOrder, ...prev]);
     loadCaja().catch(() => {});
     if (getAutoPrint()) printReceipt(finalOrder);
     else setLastOrder(finalOrder);
-  }
-
-  async function anularOrder(orderId: string, reason: string) {
-    await api.post(`/ventas/${orderId}/anular`, { reason });
-    await Promise.all([loadCaja(), loadProducts()]);
   }
 
   return (
@@ -248,136 +228,111 @@ export function Pos() {
           )}
         </div>
 
-        <div className="flex gap-1 border-b">
-          <button
-            onClick={() => setPanelTab("carrito")}
-            className={`flex-1 py-2 text-sm font-semibold border-b-2 ${
-              panelTab === "carrito" ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400"
-            }`}
-          >
-            Carrito
-          </button>
-          <button
-            onClick={() => setPanelTab("historico")}
-            className={`flex-1 py-2 text-sm font-semibold border-b-2 ${
-              panelTab === "historico" ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400"
-            }`}
-          >
-            Histórico
-          </button>
+        <div className="flex-1 min-h-0 overflow-y-auto divide-y">
+          {cart.length === 0 && <div className="text-slate-400 text-sm py-6 text-center">Carrito vacío</div>}
+          {cart.map((l) => {
+            const p = productsById.get(l.productId);
+            if (!p) return null;
+            return (
+              <div key={l.productId} className="flex items-center justify-between py-2">
+                <div>
+                  <div className="font-medium">{p.name}</div>
+                  <div className="text-xs text-slate-500">{formatCOP(p.price)} c/u</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => changeQty(l.productId, -1)} className="w-8 h-8 rounded-full border font-bold">
+                    -
+                  </button>
+                  <span className="w-6 text-center">{l.quantity}</span>
+                  <button onClick={() => changeQty(l.productId, 1)} className="w-8 h-8 rounded-full border font-bold">
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {panelTab === "historico" ? (
-          <RecentOrders orders={recentOrders} onAnular={anularOrder} onReprint={printReceipt} />
-        ) : (
-          <>
-            <div className="flex-1 min-h-0 overflow-y-auto divide-y">
-              {cart.length === 0 && <div className="text-slate-400 text-sm py-6 text-center">Carrito vacío</div>}
-              {cart.map((l) => {
-                const p = productsById.get(l.productId);
-                if (!p) return null;
-                return (
-                  <div key={l.productId} className="flex items-center justify-between py-2">
-                    <div>
-                      <div className="font-medium">{p.name}</div>
-                      <div className="text-xs text-slate-500">{formatCOP(p.price)} c/u</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => changeQty(l.productId, -1)} className="w-8 h-8 rounded-full border font-bold">
-                        -
-                      </button>
-                      <span className="w-6 text-center">{l.quantity}</span>
-                      <button onClick={() => changeQty(l.productId, 1)} className="w-8 h-8 rounded-full border font-bold">
-                        +
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="space-y-2 border-t pt-3">
-              <label className="text-sm font-medium">Método de pago</label>
-              <div className="flex gap-2">
-                {(["EFECTIVO", "TRANSFERENCIA"] as PaymentMethod[]).map((pm) => (
-                  <button
-                    key={pm}
-                    onClick={() => setPaymentMethod(pm)}
-                    className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
-                      paymentMethod === pm ? "bg-slate-900 text-white" : "bg-white"
-                    }`}
-                  >
-                    {pm === "EFECTIVO" ? "Efectivo" : "Transferencia"}
-                  </button>
-                ))}
-              </div>
-
-              <label className="text-sm font-medium">Cortesía / descuento</label>
-              <select
-                value={discountType}
-                onChange={(e) => setDiscountType(e.target.value as DiscountType)}
-                className="w-full border rounded-lg p-2 text-sm"
-              >
-                <option value="NONE">Ninguno</option>
-                <option value="CORTESIA">Cortesía (sin cobro)</option>
-                <option value="MANUAL">Descuento manual</option>
-              </select>
-              {discountType !== "NONE" && (
-                <>
-                  {discountType === "MANUAL" && (
-                    <input
-                      type="number"
-                      placeholder="Valor del descuento"
-                      value={discountAmount || ""}
-                      onChange={(e) => setDiscountAmount(Number(e.target.value))}
-                      className="w-full border rounded-lg p-2 text-sm"
-                    />
-                  )}
-                  <input
-                    type="text"
-                    placeholder="Motivo"
-                    value={discountReason}
-                    onChange={(e) => setDiscountReason(e.target.value)}
-                    className="w-full border rounded-lg p-2 text-sm"
-                  />
-                  {needsAuthorizerPin && (
-                    <input
-                      type="password"
-                      inputMode="numeric"
-                      placeholder="PIN de un administrador"
-                      value={authorizerPin}
-                      onChange={(e) => setAuthorizerPin(e.target.value.replace(/\D/g, ""))}
-                      className="w-full border rounded-lg p-2 text-sm"
-                    />
-                  )}
-                </>
-              )}
-            </div>
-
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-
-            <div className="border-t pt-3 flex items-center justify-between text-lg font-bold">
-              <span>Total</span>
-              <span>{formatCOP(total)}</span>
-            </div>
-
-            <button
-              onClick={confirmSale}
-              disabled={submitting || cart.length === 0}
-              className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-lg disabled:opacity-40"
-            >
-              {submitting ? "Procesando..." : getAutoPrint() ? "Confirmar e imprimir" : "Confirmar venta"}
-            </button>
-
-            {!getAutoPrint() && lastOrder && (
+        <div className="space-y-2 border-t pt-3">
+          <label className="text-sm font-medium">Método de pago</label>
+          <div className="flex gap-2">
+            {(["EFECTIVO", "TRANSFERENCIA"] as PaymentMethod[]).map((pm) => (
               <button
-                onClick={() => printReceipt(lastOrder)}
-                className="w-full py-2 rounded-xl border border-slate-900 text-slate-900 font-semibold"
+                key={pm}
+                onClick={() => setPaymentMethod(pm)}
+                className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                  paymentMethod === pm ? "bg-slate-900 text-white" : "bg-white"
+                }`}
               >
-                Imprimir comanda del turno #{lastOrder.turnNumber}
+                {pm === "EFECTIVO" ? "Efectivo" : "Transferencia"}
               </button>
-            )}
-          </>
+            ))}
+          </div>
+
+          <label className="text-sm font-medium">Cortesía / descuento</label>
+          <select
+            value={discountType}
+            onChange={(e) => setDiscountType(e.target.value as DiscountType)}
+            className="w-full border rounded-lg p-2 text-sm"
+          >
+            <option value="NONE">Ninguno</option>
+            <option value="CORTESIA">Cortesía (sin cobro)</option>
+            <option value="MANUAL">Descuento manual</option>
+          </select>
+          {discountType !== "NONE" && (
+            <>
+              {discountType === "MANUAL" && (
+                <input
+                  type="number"
+                  placeholder="Valor del descuento"
+                  value={discountAmount || ""}
+                  onChange={(e) => setDiscountAmount(Number(e.target.value))}
+                  className="w-full border rounded-lg p-2 text-sm"
+                />
+              )}
+              <input
+                type="text"
+                placeholder="Motivo"
+                value={discountReason}
+                onChange={(e) => setDiscountReason(e.target.value)}
+                className="w-full border rounded-lg p-2 text-sm"
+              />
+              {needsAuthorizerPin && (
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  placeholder="PIN de un administrador"
+                  value={authorizerPin}
+                  onChange={(e) => setAuthorizerPin(e.target.value.replace(/\D/g, ""))}
+                  className="w-full border rounded-lg p-2 text-sm"
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        {error && <div className="text-red-600 text-sm">{error}</div>}
+
+        <div className="border-t pt-3 flex items-center justify-between text-lg font-bold">
+          <span>Total</span>
+          <span>{formatCOP(total)}</span>
+        </div>
+
+        <button
+          onClick={confirmSale}
+          disabled={submitting || cart.length === 0}
+          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-lg disabled:opacity-40"
+        >
+          {submitting ? "Procesando..." : getAutoPrint() ? "Confirmar e imprimir" : "Confirmar venta"}
+        </button>
+
+        {!getAutoPrint() && lastOrder && (
+          <button
+            onClick={() => printReceipt(lastOrder)}
+            className="w-full py-2 rounded-xl border border-slate-900 text-slate-900 font-semibold"
+          >
+            Imprimir comanda del turno #{lastOrder.turnNumber}
+          </button>
         )}
       </div>
 

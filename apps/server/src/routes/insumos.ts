@@ -109,6 +109,20 @@ insumosRouter.post("/:id/baja", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
+const resetSchema = z.object({ confirmation: z.literal("RESETEAR INVENTARIO") });
+
+insumosRouter.post("/reset", requireRole("ADMIN"), async (req, res) => {
+  const parsed = resetSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Escribe exactamente "RESETEAR INVENTARIO" para confirmar' });
+  }
+  await prisma.$transaction([
+    prisma.inventoryMovement.deleteMany({}),
+    prisma.insumo.updateMany({ data: { stockQty: 0 } }),
+  ]);
+  res.json({ ok: true });
+});
+
 insumosRouter.get("/:id/movimientos", requireRole("ADMIN"), async (req, res) => {
   const movimientos = await prisma.inventoryMovement.findMany({
     where: { insumoId: req.params.id },

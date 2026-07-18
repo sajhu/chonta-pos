@@ -2,7 +2,9 @@ import jwt from "jsonwebtoken";
 import type { Role } from "@prisma/client";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret-change-me";
-const JWT_EXPIRES_IN = "12h";
+// Long-lived on purpose — a short expiry silently 401s every call once it lapses,
+// which looked like the register had closed itself overnight.
+const JWT_EXPIRES_IN = "30d";
 
 export interface AuthTokenPayload {
   sub: string;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../../lib/api.js";
 import { getAutoPrint, setAutoPrint } from "../../lib/settings.js";
+import { DangerReset } from "../../components/DangerReset.js";
 import type { AppUser } from "../../lib/types.js";
 
 export function Configuracion() {
@@ -95,6 +96,22 @@ export function Configuracion() {
             Crear
           </button>
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl border p-4 space-y-3">
+        <h2 className="font-semibold text-red-700">Zona de peligro</h2>
+        <DangerReset
+          title="Resetear inventario"
+          description="Pone el stock de todos los insumos en cero y borra el historial de movimientos (cargues, bajas, consumo por ventas). No afecta el menú, precios ni recetas."
+          confirmationPhrase="RESETEAR INVENTARIO"
+          endpoint="/insumos/reset"
+        />
+        <DangerReset
+          title="Resetear ventas"
+          description="Borra todas las ventas, anulaciones y cierres de caja registrados. No afecta el inventario actual ni el menú."
+          confirmationPhrase="RESETEAR VENTAS"
+          endpoint="/caja/reset-ventas"
+        />
       </div>
 
       <div className="bg-white rounded-xl border divide-y">

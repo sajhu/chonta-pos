@@ -75,3 +75,8 @@ export function useAuth() {
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
+
+export function clearSession(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}

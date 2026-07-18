@@ -114,3 +114,18 @@ cajaRouter.get("/historial", requireRole("ADMIN"), async (_req, res) => {
   });
   res.json(sessions);
 });
+
+const resetVentasSchema = z.object({ confirmation: z.literal("RESETEAR VENTAS") });
+
+cajaRouter.post("/reset-ventas", requireRole("ADMIN"), async (req, res) => {
+  const parsed = resetVentasSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Escribe exactamente "RESETEAR VENTAS" para confirmar' });
+  }
+  await prisma.$transaction([
+    prisma.inventoryMovement.deleteMany({ where: { type: { in: ["VENTA", "ANULACION"] } } }),
+    prisma.order.deleteMany({}),
+    prisma.cashSession.deleteMany({}),
+  ]);
+  res.json({ ok: true });
+});

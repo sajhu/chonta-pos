@@ -1,4 +1,4 @@
-import { getToken } from "./auth.js";
+import { clearSession, getToken } from "./auth.js";
 
 export class ApiError extends Error {}
 
@@ -12,6 +12,14 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && location.pathname !== "/login") {
+    // Session expired or invalid — bounce to login instead of leaving every page stuck
+    // showing misleading "nothing here" states (e.g. caja looking closed when it isn't).
+    clearSession();
+    location.href = "/login";
+    throw new ApiError("Sesión expirada");
+  }
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

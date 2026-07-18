@@ -15,6 +15,9 @@ export function NavBar() {
       <NavLink to="/pos" className={linkClass}>
         Venta
       </NavLink>
+      <NavLink to="/historico" className={linkClass}>
+        Histórico
+      </NavLink>
       <NavLink to="/dashboard" className={linkClass}>
         Ventas del evento
       </NavLink>

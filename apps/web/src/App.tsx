@@ -7,6 +7,7 @@ import { Login } from "./pages/Login.js";
 import { Pos } from "./pages/Pos.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Caja } from "./pages/Caja.js";
+import { Historico } from "./pages/Historico.js";
 import { Menu } from "./pages/admin/Menu.js";
 import { Insumos } from "./pages/admin/Insumos.js";
 import { Configuracion } from "./pages/admin/Configuracion.js";
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/pos" element={user ? <Pos /> : <Navigate to="/login" replace />} />
           <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
           <Route path="/caja" element={user ? <Caja /> : <Navigate to="/login" replace />} />
+          <Route path="/historico" element={user ? <Historico /> : <Navigate to="/login" replace />} />
           <Route
             path="/admin/menu"
             element={
