@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type Role = "ADMIN" | "CAJERO";
 
@@ -29,16 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
-  }, [token]);
-
-  useEffect(() => {
-    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(USER_KEY);
-  }, [user]);
-
   async function login(pin: string) {
     setError(null);
     const res = await fetch("/api/auth/login", {
@@ -52,11 +42,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(body.error ?? "Login failed");
     }
     const body = await res.json();
+    // Written synchronously (not via a useEffect) so it lands in localStorage before the
+    // caller navigates — otherwise the next page's mount-time API calls can fire with no
+    // token yet, get 401'd, and immediately bounce back to /login right after a real login.
+    localStorage.setItem(TOKEN_KEY, body.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(body.user));
     setToken(body.token);
     setUser(body.user);
   }
 
   function logout() {
+    clearSession();
     setToken(null);
     setUser(null);
   }
