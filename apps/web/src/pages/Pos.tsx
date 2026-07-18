@@ -25,6 +25,7 @@ export function Pos() {
   const [discountType, setDiscountType] = useState<DiscountType>("NONE");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountReason, setDiscountReason] = useState("");
+  const [discountOpen, setDiscountOpen] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [cashActual, setCashActual] = useState<CajaActual | null>(null);
   const [pendingVentas, setPendingVentas] = useState(0);
@@ -98,7 +99,10 @@ export function Pos() {
     setDiscountType("NONE");
     setDiscountAmount(0);
     setDiscountReason("");
+    setDiscountOpen(false);
   }
+
+  const showDiscountSection = discountOpen || discountType !== "NONE";
 
   function handleConfirmClick() {
     setError(null);
@@ -183,8 +187,8 @@ export function Pos() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-56px)]">
-      <div className="flex-1 overflow-y-auto p-3">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-56px)] overflow-y-auto">
+      <div className="lg:flex-1 lg:overflow-y-auto p-3">
         <div className="sticky top-0 z-10 -mx-3 px-3 pt-1 pb-2 mb-2 bg-slate-50 flex gap-2 overflow-x-auto">
           {categories.map((c) => (
             <button
@@ -235,14 +239,14 @@ export function Pos() {
         ))}
       </div>
 
-      <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l flex flex-col p-3 gap-3 overflow-y-auto">
+      <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l flex flex-col p-3 gap-3 lg:overflow-y-auto">
         {cashActual?.session && (
           <div className="text-sm text-slate-500">
             Turno siguiente: <strong>#{(cashActual.lastTurnNumber ?? 0) + pendingVentas + 1}</strong>
           </div>
         )}
 
-        <div className="flex-1 min-h-0 overflow-y-auto divide-y">
+        <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto divide-y">
           {cart.length === 0 && <div className="text-slate-400 text-sm py-6 text-center">Carrito vacío</div>}
           {cart.map((l) => {
             const p = productsById.get(l.productId);
@@ -281,42 +285,54 @@ export function Pos() {
                 {pm === "EFECTIVO" ? "Efectivo" : "Transferencia"}
               </button>
             ))}
+            <button
+              onClick={() => setDiscountOpen((o) => !o)}
+              title="Cortesía / descuento"
+              className={`shrink-0 w-11 py-2 rounded-lg border text-sm font-bold ${
+                discountType !== "NONE" ? "bg-amber-500 text-white border-amber-500" : "bg-white"
+              }`}
+            >
+              %
+            </button>
           </div>
 
-          <label className="text-sm font-medium">Cortesía / descuento</label>
-          <select
-            value={discountType}
-            onChange={(e) => setDiscountType(e.target.value as DiscountType)}
-            className="w-full border rounded-lg p-2 text-sm"
-          >
-            <option value="NONE">Ninguno</option>
-            <option value="CORTESIA">Cortesía (sin cobro)</option>
-            <option value="MANUAL">Descuento manual</option>
-          </select>
-          {discountType !== "NONE" && (
-            <>
-              {discountType === "MANUAL" && (
-                <input
-                  type="number"
-                  placeholder="Valor del descuento"
-                  value={discountAmount || ""}
-                  onChange={(e) => setDiscountAmount(Number(e.target.value))}
-                  className="w-full border rounded-lg p-2 text-sm"
-                />
-              )}
-              <input
-                type="text"
-                placeholder="Motivo"
-                value={discountReason}
-                onChange={(e) => setDiscountReason(e.target.value)}
+          {showDiscountSection && (
+            <div className="space-y-2">
+              <select
+                value={discountType}
+                onChange={(e) => setDiscountType(e.target.value as DiscountType)}
                 className="w-full border rounded-lg p-2 text-sm"
-              />
-              {needsAuthorizerPin && (
-                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
-                  Se te pedirá el PIN de un administrador al confirmar.
-                </div>
+              >
+                <option value="NONE">Ninguno</option>
+                <option value="CORTESIA">Cortesía (sin cobro)</option>
+                <option value="MANUAL">Descuento manual</option>
+              </select>
+              {discountType !== "NONE" && (
+                <>
+                  {discountType === "MANUAL" && (
+                    <input
+                      type="number"
+                      placeholder="Valor del descuento"
+                      value={discountAmount || ""}
+                      onChange={(e) => setDiscountAmount(Number(e.target.value))}
+                      className="w-full border rounded-lg p-2 text-sm"
+                    />
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Motivo"
+                    value={discountReason}
+                    onChange={(e) => setDiscountReason(e.target.value)}
+                    className="w-full border rounded-lg p-2 text-sm"
+                  />
+                  {needsAuthorizerPin && (
+                    <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      Se te pedirá el PIN de un administrador al confirmar.
+                    </div>
+                  )}
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
 
