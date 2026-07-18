@@ -55,7 +55,7 @@ export async function runSeed(): Promise<void> {
   const insumoAguila = await upsertInsumo("Cerveza Águila", "UNIDAD");
   const insumoClubColombia = await upsertInsumo("Cerveza Club Colombia", "UNIDAD");
   const insumoAgua = await upsertInsumo("Agua sin gas", "UNIDAD");
-  const insumoViche = await upsertInsumo("Viche", "ML");
+  const insumoVencedor = await upsertInsumo("Vencedor", "ML");
   const insumoAlmibarMora = await upsertInsumo("Almíbar mora", "ML");
   const insumoAlmibarLulo = await upsertInsumo("Almíbar lulo-limonaria", "ML");
   const insumoZumoLimon = await upsertInsumo("Zumo de limón", "ML");
@@ -103,7 +103,7 @@ export async function runSeed(): Promise<void> {
     coctel.id,
     15000,
     [
-      { insumoId: insumoViche.id, quantity: 50 },
+      { insumoId: insumoVencedor.id, quantity: 50 },
       { insumoId: insumoAlmibarMora.id, quantity: 20 },
       { insumoId: insumoZumoLimon.id, quantity: 20 },
     ],
@@ -115,7 +115,7 @@ export async function runSeed(): Promise<void> {
     coctel.id,
     15000,
     [
-      { insumoId: insumoViche.id, quantity: 50 },
+      { insumoId: insumoVencedor.id, quantity: 50 },
       { insumoId: insumoAlmibarLulo.id, quantity: 20 },
       { insumoId: insumoZumoLimon.id, quantity: 20 },
     ],
@@ -145,8 +145,8 @@ export async function runSeed(): Promise<void> {
     imgMocktail,
   );
 
-  await upsertProduct("Caneca Vencedor 375ml", viche.id, 50000, [{ insumoId: insumoViche.id, quantity: 375 }], 1, imgCaneca);
-  await upsertProduct("Shot Curao", viche.id, 10000, [{ insumoId: insumoViche.id, quantity: 50 }], 2, imgShot);
+  await upsertProduct("Caneca Vencedor 375ml", viche.id, 50000, [{ insumoId: insumoVencedor.id, quantity: 375 }], 1, imgCaneca);
+  await upsertProduct("Shot Curao", viche.id, 10000, [{ insumoId: insumoVencedor.id, quantity: 50 }], 2, imgShot);
 
   console.log("Seed completado.");
 }
