@@ -10,14 +10,10 @@ Este proyecto está pensado para desplegarse como **un solo Web Service** de Nod
    - `chonta-pos` (Web Service Node)
 3. Render generará automáticamente `JWT_SECRET` y conectará `DATABASE_URL` a la base de datos.
 4. Espera a que termine el primer deploy (corre `npm install`, `npm run build` y las migraciones de Prisma).
-5. **Carga los datos iniciales (una sola vez):** en el servicio `chonta-pos`, pestaña **Shell**, ejecuta:
-   ```
-   npm run seed -w apps/server
-   ```
-   Esto crea el usuario admin (PIN `1234`) y cajero (PIN `5678`) de ejemplo, además del menú/insumos/recetas descritos en el pedido original. **Cambia esos PINs de inmediato** desde `/admin/usuarios` antes del evento.
+5. **La primera vez que el servidor arranca con la base de datos vacía, carga solo automáticamente** el usuario admin (PIN `1234`), cajero (PIN `5678`) y el menú/insumos/recetas descritos en el pedido original — no necesitas Shell ni ningún paso manual, útil en el plan gratis de Render donde no hay acceso a Shell. **Cambia esos PINs de inmediato** desde `/admin/configuracion` antes del evento.
 6. Abre la URL pública del servicio — ahí vive toda la app (POS, dashboard, admin).
 
-> Importante: el seed usa `upsert`, así que puedes volver a correrlo sin duplicar datos, pero **no** lo dejes en el build command — sobrescribiría precios/recetas que edites luego desde el panel de admin.
+> El auto-cargue solo se dispara si la tabla de usuarios está completamente vacía (arranque nº1), así que un reinicio o redeploy posterior nunca vuelve a pisar precios/recetas que edites desde el panel de admin. Si tienes acceso a Shell (planes pagos) y alguna vez quieres forzar un re-seed manual, sigue estando disponible con `npm run seed -w apps/server`.
 
 ## Opción B: manual
 
@@ -29,7 +25,7 @@ Este proyecto está pensado para desplegarse como **un solo Web Service** de Nod
    - `DATABASE_URL`: la cadena de conexión de Postgres
    - `JWT_SECRET`: una cadena aleatoria larga
    - `PORT`: `4000` (Render la sobreescribe con la suya igual)
-4. Después del primer deploy, corre el seed una vez desde la Shell del servicio: `npm run seed -w apps/server`.
+4. Al primer arranque con la base vacía, el servidor carga los datos iniciales automáticamente (ver nota arriba) — no requiere Shell.
 
 ## Desarrollo local
 

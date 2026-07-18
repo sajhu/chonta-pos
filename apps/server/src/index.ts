@@ -11,6 +11,8 @@ import { insumosRouter } from "./routes/insumos.js";
 import { ventasRouter } from "./routes/ventas.js";
 import { reportesRouter } from "./routes/reportes.js";
 import { cajaRouter } from "./routes/caja.js";
+import { prisma } from "./lib/prisma.js";
+import { runSeed } from "./lib/seedData.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -42,6 +44,19 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
 });
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => {
-  console.log(`Servidor POS escuchando en http://localhost:${port}`);
+
+async function start() {
+  const userCount = await prisma.user.count();
+  if (userCount === 0) {
+    console.log("Base de datos vacía — ejecutando cargue inicial (seed) automáticamente...");
+    await runSeed();
+  }
+  app.listen(port, () => {
+    console.log(`Servidor POS escuchando en http://localhost:${port}`);
+  });
+}
+
+start().catch((err) => {
+  console.error("Error al iniciar el servidor:", err);
+  process.exit(1);
 });
