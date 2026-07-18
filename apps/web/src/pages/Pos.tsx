@@ -5,6 +5,7 @@ import { enqueue, subscribeOutbox } from "../lib/outbox.js";
 import { getAutoPrint } from "../lib/settings.js";
 import { usePrintReceipt } from "../lib/usePrintReceipt.js";
 import { Receipt } from "../components/Receipt.js";
+import { AdminPinModal } from "../components/AdminPinModal.js";
 import type { CajaActual, DiscountType, Order, PaymentMethod, Product } from "../lib/types.js";
 
 const formatCOP = (n: number) =>
@@ -20,11 +21,11 @@ export function Pos() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("EFECTIVO");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [discountType, setDiscountType] = useState<DiscountType>("NONE");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountReason, setDiscountReason] = useState("");
-  const [authorizerPin, setAuthorizerPin] = useState("");
+  const [showPinModal, setShowPinModal] = useState(false);
   const [cashActual, setCashActual] = useState<CajaActual | null>(null);
   const [pendingVentas, setPendingVentas] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -89,32 +90,40 @@ export function Pos() {
   const subtotal = cart.reduce((sum, l) => sum + (productsById.get(l.productId)?.price ?? 0) * l.quantity, 0);
   const total = discountType === "CORTESIA" ? 0 : Math.max(0, subtotal - (discountType === "MANUAL" ? discountAmount : 0));
 
-  const needsAuthorizerPin = discountType === "CORTESIA" && user?.role === "CAJERO";
+  const needsAuthorizerPin = (discountType === "CORTESIA" || discountType === "MANUAL") && user?.role === "CAJERO";
 
   function resetSaleForm() {
     setCart([]);
+    setPaymentMethod(null);
     setDiscountType("NONE");
     setDiscountAmount(0);
     setDiscountReason("");
-    setAuthorizerPin("");
   }
 
-  async function confirmSale() {
+  function handleConfirmClick() {
     setError(null);
     if (cart.length === 0) return;
     if (!cashActual?.session) {
       setError("La caja no está abierta. Pide a un administrador que abra el turno.");
       return;
     }
+    if (!paymentMethod) {
+      setError("Selecciona un método de pago.");
+      return;
+    }
     if ((discountType === "MANUAL" || discountType === "CORTESIA") && !discountReason.trim()) {
       setError("Escribe el motivo de la cortesía o el descuento.");
       return;
     }
-    if (needsAuthorizerPin && !authorizerPin.trim()) {
-      setError("Se requiere el PIN de un administrador para aplicar una cortesía.");
+    if (needsAuthorizerPin) {
+      setShowPinModal(true);
       return;
     }
+    submitSale();
+  }
 
+  async function submitSale(authorizerPin?: string) {
+    if (!cashActual?.session || !paymentMethod) return;
     setSubmitting(true);
     const clientRequestId = crypto.randomUUID();
     const itemsSnapshot = cart.map((l) => {
@@ -130,7 +139,7 @@ export function Pos() {
       discountType,
       discountAmount: discountType === "MANUAL" ? discountAmount : 0,
       discountReason: discountType !== "NONE" ? discountReason : undefined,
-      authorizerPin: needsAuthorizerPin ? authorizerPin.trim() : undefined,
+      authorizerPin,
     };
 
     let finalOrder: Order = {
@@ -303,14 +312,9 @@ export function Pos() {
                 className="w-full border rounded-lg p-2 text-sm"
               />
               {needsAuthorizerPin && (
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  placeholder="PIN de un administrador"
-                  value={authorizerPin}
-                  onChange={(e) => setAuthorizerPin(e.target.value.replace(/\D/g, ""))}
-                  className="w-full border rounded-lg p-2 text-sm"
-                />
+                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                  Se te pedirá el PIN de un administrador al confirmar.
+                </div>
               )}
             </>
           )}
@@ -330,7 +334,7 @@ export function Pos() {
         )}
 
         <button
-          onClick={confirmSale}
+          onClick={handleConfirmClick}
           disabled={submitting || cart.length === 0 || !cashActual?.session}
           className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-lg disabled:opacity-40"
         >
@@ -346,6 +350,17 @@ export function Pos() {
           </button>
         )}
       </div>
+
+      {showPinModal && (
+        <AdminPinModal
+          title={discountType === "CORTESIA" ? "Autorizar cortesía" : "Autorizar descuento"}
+          onCancel={() => setShowPinModal(false)}
+          onConfirm={(pin) => {
+            setShowPinModal(false);
+            submitSale(pin);
+          }}
+        />
+      )}
 
       {lastOrder && <Receipt order={lastOrder} />}
     </div>

@@ -12,33 +12,35 @@ export function NavBar() {
   if (!user) return null;
 
   return (
-    <nav className="flex items-center gap-1 overflow-x-auto px-3 py-2 border-b bg-white sticky top-0 z-10">
-      <NavLink to="/pos" className={linkClass}>
-        Venta
-      </NavLink>
-      <NavLink to="/historico" className={linkClass}>
-        Histórico
-      </NavLink>
-      <NavLink to="/dashboard" className={linkClass}>
-        Ventas del evento
-      </NavLink>
-      <NavLink to="/caja" className={linkClass}>
-        Caja
-      </NavLink>
-      {user.role === "ADMIN" && (
-        <>
-          <NavLink to="/admin/menu" className={linkClass}>
-            Menú
-          </NavLink>
-          <NavLink to="/admin/insumos" className={linkClass}>
-            Insumos
-          </NavLink>
-          <NavLink to="/admin/configuracion" className={linkClass}>
-            Configuración
-          </NavLink>
-        </>
-      )}
-      <div className="ml-auto flex items-center gap-2 pl-2">
+    <nav className="flex items-center gap-1 px-3 py-2 border-b bg-white sticky top-0 z-10">
+      <div className="flex items-center gap-1 overflow-x-auto flex-1 min-w-0">
+        <NavLink to="/pos" className={linkClass}>
+          Venta
+        </NavLink>
+        <NavLink to="/historico" className={linkClass}>
+          Histórico
+        </NavLink>
+        <NavLink to="/dashboard" className={linkClass}>
+          Ventas del evento
+        </NavLink>
+        <NavLink to="/caja" className={linkClass}>
+          Caja
+        </NavLink>
+        {user.role === "ADMIN" && (
+          <>
+            <NavLink to="/admin/menu" className={linkClass}>
+              Menú
+            </NavLink>
+            <NavLink to="/admin/insumos" className={linkClass}>
+              Insumos
+            </NavLink>
+            <NavLink to="/admin/configuracion" className={linkClass}>
+              Configuración
+            </NavLink>
+          </>
+        )}
+      </div>
+      <div className="flex items-center gap-2 pl-2 shrink-0">
         <LowStockBadge />
         <span className="text-sm text-slate-500 hidden sm:inline">
           {user.name} · {user.role === "ADMIN" ? "Admin" : "Cajero"}

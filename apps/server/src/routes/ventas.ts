@@ -36,9 +36,9 @@ ventasRouter.post("/", async (req, res) => {
   }
 
   let authorizedByUserId: string | undefined;
-  if (input.discountType === "CORTESIA" && req.user!.role === "CAJERO") {
+  if ((input.discountType === "CORTESIA" || input.discountType === "MANUAL") && req.user!.role === "CAJERO") {
     if (!input.authorizerPin) {
-      return res.status(403).json({ error: "Se requiere el PIN de un administrador para aplicar una cortesía" });
+      return res.status(403).json({ error: "Se requiere el PIN de un administrador para aplicar una cortesía o un descuento" });
     }
     const admins = await prisma.user.findMany({ where: { role: "ADMIN", active: true } });
     const admin = admins.find((a) => bcrypt.compareSync(input.authorizerPin!, a.pinHash));

@@ -107,12 +107,20 @@ export function Caja() {
             <span>Base: {formatCOP(actual.session.openingBase)}</span>
           </div>
           {c && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Stat label="Ventas" value={String(c.totalVentas)} />
-              <Stat label="Ingresos" value={formatCOP(c.totalIngresos)} />
-              <Stat label="Efectivo" value={formatCOP(c.byPaymentMethod.EFECTIVO?.total ?? 0)} />
-              <Stat label="Transferencia" value={formatCOP(c.byPaymentMethod.TRANSFERENCIA?.total ?? 0)} />
-            </div>
+            <>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-emerald-800">Efectivo esperado en caja</span>
+                <span className="text-xl font-bold text-emerald-800">
+                  {formatCOP(actual.session.openingBase + (c.byPaymentMethod.EFECTIVO?.total ?? 0))}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Stat label="Ventas" value={String(c.totalVentas)} />
+                <Stat label="Ingresos" value={formatCOP(c.totalIngresos)} />
+                <Stat label="Ventas efectivo" value={formatCOP(c.byPaymentMethod.EFECTIVO?.total ?? 0)} />
+                <Stat label="Transferencia" value={formatCOP(c.byPaymentMethod.TRANSFERENCIA?.total ?? 0)} />
+              </div>
+            </>
           )}
 
           {user?.role === "ADMIN" && (
