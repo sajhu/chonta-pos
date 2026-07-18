@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../../lib/api.js";
+import { getAutoPrint, setAutoPrint } from "../../lib/settings.js";
 import type { AppUser } from "../../lib/types.js";
 
-export function Usuarios() {
+export function Configuracion() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [role, setRole] = useState<"ADMIN" | "CAJERO">("CAJERO");
   const [error, setError] = useState<string | null>(null);
+  const [autoPrint, setAutoPrintState] = useState(getAutoPrint());
 
   async function load() {
     setUsers(await api.get<AppUser[]>("/usuarios"));
@@ -16,6 +18,12 @@ export function Usuarios() {
   useEffect(() => {
     load().catch(() => {});
   }, []);
+
+  function toggleAutoPrint() {
+    const next = !autoPrint;
+    setAutoPrint(next);
+    setAutoPrintState(next);
+  }
 
   async function createUser() {
     setError(null);
@@ -40,7 +48,28 @@ export function Usuarios() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-bold">Usuarios</h1>
+      <h1 className="text-xl font-bold">Configuración</h1>
+
+      <div className="bg-white rounded-xl border p-4 space-y-2">
+        <h2 className="font-semibold">Impresión de comandas</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium">Impresión automática al confirmar el pago</div>
+            <div className="text-xs text-slate-500">
+              Si la desactivas, aparecerá un botón para imprimir la comanda manualmente. Reimprimir desde el
+              histórico siempre está disponible, sin importar esta opción.
+            </div>
+          </div>
+          <button
+            onClick={toggleAutoPrint}
+            className={`shrink-0 w-14 h-8 rounded-full relative transition-colors ${autoPrint ? "bg-emerald-600" : "bg-slate-300"}`}
+          >
+            <span
+              className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${autoPrint ? "translate-x-7" : "translate-x-1"}`}
+            />
+          </button>
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl border p-4 space-y-2">
         <h2 className="font-semibold">Nuevo usuario</h2>

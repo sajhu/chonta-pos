@@ -9,7 +9,7 @@ import { Dashboard } from "./pages/Dashboard.js";
 import { Caja } from "./pages/Caja.js";
 import { Menu } from "./pages/admin/Menu.js";
 import { Insumos } from "./pages/admin/Insumos.js";
-import { Usuarios } from "./pages/admin/Usuarios.js";
+import { Configuracion } from "./pages/admin/Configuracion.js";
 
 export default function App() {
   const { user } = useAuth();
@@ -41,10 +41,10 @@ export default function App() {
             }
           />
           <Route
-            path="/admin/usuarios"
+            path="/admin/configuracion"
             element={
               <RoleRoute roles={["ADMIN"]}>
-                <Usuarios />
+                <Configuracion />
               </RoleRoute>
             }
           />

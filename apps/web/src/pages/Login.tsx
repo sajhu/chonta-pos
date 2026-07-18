@@ -24,8 +24,7 @@ export function Login() {
   function press(digit: string) {
     if (digit === "back") return setPin((p) => p.slice(0, -1));
     if (digit === "clear") return setPin("");
-    if (pin.length >= 8) return;
-    setPin((p) => p + digit);
+    setPin((p) => (p.length >= 8 ? p : p + digit));
   }
 
   useEffect(() => {
@@ -37,13 +36,16 @@ export function Login() {
         press("back");
       } else if (e.key === "Escape") {
         press("clear");
-      } else if (e.key === "Enter" && pin.length >= 4) {
-        handleSubmit(pin);
+      } else if (e.key === "Enter") {
+        setPin((current) => {
+          if (current.length >= 4) handleSubmit(current);
+          return current;
+        });
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [pin, submitting]);
+  }, [submitting]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-56px)] p-4">
