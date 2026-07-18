@@ -26,6 +26,7 @@ const upsertSchema = z.object({
   name: z.string().min(1),
   categoryId: z.string().min(1),
   price: z.number().nonnegative(),
+  imageUrl: z.string().min(1).nullable().optional(),
   active: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
   recipeItems: z.array(recipeItemSchema).min(1),

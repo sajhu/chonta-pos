@@ -33,6 +33,7 @@ export interface Product {
   categoryId: string;
   category: Category;
   price: number;
+  imageUrl?: string | null;
   active: boolean;
   sortOrder: number;
   recipeItems: RecipeItem[];

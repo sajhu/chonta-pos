@@ -62,12 +62,15 @@ export function Configuracion() {
             </div>
           </div>
           <button
+            type="button"
+            role="switch"
+            aria-checked={autoPrint}
             onClick={toggleAutoPrint}
-            className={`shrink-0 w-14 h-8 rounded-full relative transition-colors ${autoPrint ? "bg-emerald-600" : "bg-slate-300"}`}
+            className={`inline-flex shrink-0 items-center w-14 h-8 rounded-full p-1 transition-colors ${
+              autoPrint ? "bg-emerald-600 justify-end" : "bg-slate-300 justify-start"
+            }`}
           >
-            <span
-              className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${autoPrint ? "translate-x-7" : "translate-x-1"}`}
-            />
+            <span className="w-6 h-6 rounded-full bg-white shadow" />
           </button>
         </div>
       </div>

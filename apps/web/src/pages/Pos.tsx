@@ -206,10 +206,19 @@ export function Pos() {
                   <button
                     key={p.id}
                     onClick={() => addToCart(p.id)}
-                    className="text-left bg-white rounded-xl shadow border p-3 active:scale-[0.98]"
+                    className="text-left bg-white rounded-xl shadow border p-3 active:scale-[0.98] flex flex-col sm:flex-row sm:items-center gap-3"
                   >
-                    <div className="font-semibold">{p.name}</div>
-                    <div className="text-slate-500">{formatCOP(p.price)}</div>
+                    {p.imageUrl && (
+                      <img
+                        src={p.imageUrl}
+                        alt=""
+                        className="w-full h-20 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0"
+                      />
+                    )}
+                    <div>
+                      <div className="font-semibold">{p.name}</div>
+                      <div className="text-slate-500">{formatCOP(p.price)}</div>
+                    </div>
                   </button>
                 ))}
             </div>
@@ -218,15 +227,11 @@ export function Pos() {
       </div>
 
       <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l flex flex-col p-3 gap-3 overflow-y-auto">
-        <div className="text-sm text-slate-500">
-          {cashActual?.session ? (
-            <span>
-              Turno siguiente: <strong>#{(cashActual.lastTurnNumber ?? 0) + pendingVentas + 1}</strong>
-            </span>
-          ) : (
-            <span className="text-red-600 font-medium">Caja cerrada — no se pueden registrar ventas</span>
-          )}
-        </div>
+        {cashActual?.session && (
+          <div className="text-sm text-slate-500">
+            Turno siguiente: <strong>#{(cashActual.lastTurnNumber ?? 0) + pendingVentas + 1}</strong>
+          </div>
+        )}
 
         <div className="flex-1 min-h-0 overflow-y-auto divide-y">
           {cart.length === 0 && <div className="text-slate-400 text-sm py-6 text-center">Carrito vacío</div>}
@@ -318,9 +323,15 @@ export function Pos() {
           <span>{formatCOP(total)}</span>
         </div>
 
+        {!cashActual?.session && (
+          <div className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 text-sm font-medium">
+            Caja cerrada — pide a un administrador que abra el turno para poder cobrar.
+          </div>
+        )}
+
         <button
           onClick={confirmSale}
-          disabled={submitting || cart.length === 0}
+          disabled={submitting || cart.length === 0 || !cashActual?.session}
           className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-lg disabled:opacity-40"
         >
           {submitting ? "Procesando..." : getAutoPrint() ? "Confirmar e imprimir" : "Confirmar venta"}

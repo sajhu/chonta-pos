@@ -10,7 +10,7 @@ interface RecipeDraft {
   quantity: number;
 }
 
-const emptyDraft = { id: "", name: "", categoryId: "", price: 0, recipeItems: [] as RecipeDraft[] };
+const emptyDraft = { id: "", name: "", categoryId: "", price: 0, imageUrl: "", recipeItems: [] as RecipeDraft[] };
 
 export function Menu() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -54,6 +54,7 @@ export function Menu() {
       name: p.name,
       categoryId: p.categoryId,
       price: p.price,
+      imageUrl: p.imageUrl ?? "",
       recipeItems: p.recipeItems.map((r) => ({ insumoId: r.insumoId, quantity: r.quantity })),
     });
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -85,6 +86,7 @@ export function Menu() {
         name: draft.name.trim(),
         categoryId: draft.categoryId,
         price: draft.price,
+        imageUrl: draft.imageUrl.trim() || null,
         recipeItems: draft.recipeItems,
       };
       if (draft.id) await api.put(`/products/${draft.id}`, payload);
@@ -166,6 +168,22 @@ export function Menu() {
             onChange={(e) => setDraft((d) => ({ ...d, price: Number(e.target.value) }))}
             className="border rounded-lg p-2"
           />
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <input
+              placeholder="URL de imagen (opcional)"
+              value={draft.imageUrl}
+              onChange={(e) => setDraft((d) => ({ ...d, imageUrl: e.target.value }))}
+              className="flex-1 border rounded-lg p-2"
+            />
+            {draft.imageUrl.trim() && (
+              <img
+                src={draft.imageUrl.trim()}
+                alt=""
+                className="w-12 h-12 rounded-lg object-cover border shrink-0"
+                onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+              />
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -216,11 +234,16 @@ export function Menu() {
         <div className="divide-y">
           {products.map((p) => (
             <div key={p.id} className="py-2 flex items-center justify-between gap-2">
-              <div>
-                <div className={`font-medium ${!p.active ? "line-through text-slate-400" : ""}`}>{p.name}</div>
-                <div className="text-xs text-slate-500">
-                  {p.category.name} · {formatCOP(p.price)} ·{" "}
-                  {p.recipeItems.map((r) => `${r.quantity}${r.insumo.unit === "ML" ? "ml" : "u"} ${r.insumo.name}`).join(", ")}
+              <div className="flex items-center gap-3 min-w-0">
+                {p.imageUrl && (
+                  <img src={p.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className={`font-medium ${!p.active ? "line-through text-slate-400" : ""}`}>{p.name}</div>
+                  <div className="text-xs text-slate-500">
+                    {p.category.name} · {formatCOP(p.price)} ·{" "}
+                    {p.recipeItems.map((r) => `${r.quantity}${r.insumo.unit === "ML" ? "ml" : "u"} ${r.insumo.name}`).join(", ")}
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">

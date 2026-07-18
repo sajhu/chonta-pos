@@ -90,6 +90,7 @@ model Product {
   categoryId  String
   category    Category     @relation(fields: [categoryId], references: [id])
   price       Float
+  imageUrl    String?
   active      Boolean      @default(true)
   sortOrder   Int          @default(0)
   recipeItems RecipeItem[]
