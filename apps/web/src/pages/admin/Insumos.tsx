@@ -175,7 +175,11 @@ export function Insumos() {
                 <div>
                   <div className="font-medium">{ins.name}</div>
                   <div className={`text-sm ${low ? "text-red-600 font-semibold" : "text-slate-500"}`}>
-                    Stock: {ins.stockQty} {ins.unit.toLowerCase()} (mínimo {ins.minThreshold})
+                    Stock: {ins.stockQty} {ins.unit.toLowerCase()} (mínimo {ins.minThreshold}
+                    {ins.packageSize && ins.packageSize > 0 && (
+                      <> ≈ {(ins.minThreshold / ins.packageSize).toFixed(1)} {ins.packageLabel || "unidad"}</>
+                    )}
+                    )
                     {ins.packageSize && ins.packageSize > 0 && (
                       <> · ≈{(ins.stockQty / ins.packageSize).toFixed(1)} {ins.packageLabel || "unidad"}</>
                     )}

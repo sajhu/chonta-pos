@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
+import { LowStockBadge } from "./LowStockBadge.js";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
@@ -38,6 +39,7 @@ export function NavBar() {
         </>
       )}
       <div className="ml-auto flex items-center gap-2 pl-2">
+        <LowStockBadge />
         <span className="text-sm text-slate-500 hidden sm:inline">
           {user.name} · {user.role === "ADMIN" ? "Admin" : "Cajero"}
         </span>
