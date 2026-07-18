@@ -81,14 +81,14 @@ export async function runSeed(): Promise<void> {
     });
   }
 
-  // Stock photos from Wikimedia Commons (freely licensed — CC BY-SA / CC0 / public domain).
-  const imgPoker = "https://upload.wikimedia.org/wikipedia/commons/1/14/Botella-nueva-sin-tapa-330-cerveza-colombiana.png";
-  const imgAguila = "https://upload.wikimedia.org/wikipedia/commons/2/22/Botella-de-aguila-light-cerveza-colombiana.png";
-  const imgClubColombia = "https://upload.wikimedia.org/wikipedia/commons/e/e3/Club_Colombia.jpeg";
+  // Official product photos (brand sites) where available; freely-licensed stock otherwise.
+  const imgPoker = "https://www.bavaria.co/sites/g/files/seuoyk1666/files/2026-01/Poker%20Botella%20330%20Frontal%20nueva%20imagen.png";
+  const imgAguila = "https://www.bavaria.co/sites/g/files/seuoyk1666/files/2026-01/AGUILA-ORIGINAL-330-hielos.png";
+  const imgClubColombia = "https://www.bavaria.co/sites/g/files/seuoyk1666/files/2026-01/club%20colombia.png";
   const imgAgua = "https://upload.wikimedia.org/wikipedia/commons/5/51/Water_bottle_blue.jpg";
-  const imgMora = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Cosmopolitan_-_CrystalMixer.jpg";
-  const imgLulo = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Margarita.jpg";
-  const imgCaneca = "https://upload.wikimedia.org/wikipedia/commons/b/b5/Botella_de_Aguardiente_Antioque%C3%B1o.jpg";
+  const imgMora = "https://vicheetnias.com/cdn/shop/files/Fresa_Lichi_Mesa_de_trabajo_1.png";
+  const imgLulo = "https://vicheetnias.com/cdn/shop/files/Mango_Mesa_de_trabajo_1.png";
+  const imgCaneca = "https://content.app-sources.com/s/83596157099657748/uploads/Bebidas_ancestrales/VICHE_CURAO_750_ML-6283185.JPG?format=webp";
   const imgShot = "https://upload.wikimedia.org/wikipedia/commons/f/fb/Three_shotglasses.jpg";
 
   await upsertProduct("Poker", cerveza.id, 7000, [{ insumoId: insumoPoker.id, quantity: 1 }], 1, imgPoker);
