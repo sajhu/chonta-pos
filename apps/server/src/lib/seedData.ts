@@ -86,9 +86,11 @@ export async function runSeed(): Promise<void> {
   const imgAguila = "https://www.bavaria.co/sites/g/files/seuoyk1666/files/2026-01/AGUILA-ORIGINAL-330-hielos.png";
   const imgClubColombia = "https://www.bavaria.co/sites/g/files/seuoyk1666/files/2026-01/club%20colombia.png";
   const imgAgua = "https://upload.wikimedia.org/wikipedia/commons/5/51/Water_bottle_blue.jpg";
-  const imgMora = "https://vicheetnias.com/cdn/shop/files/Fresa_Lichi_Mesa_de_trabajo_1.png";
-  const imgLulo = "https://vicheetnias.com/cdn/shop/files/Mango_Mesa_de_trabajo_1.png";
-  const imgCaneca = "https://content.app-sources.com/s/83596157099657748/uploads/Bebidas_ancestrales/VICHE_CURAO_750_ML-6283185.JPG?format=webp";
+  const imgMora = "https://thumbs.dreamstime.com/b/asombroso-batido-de-gambas-verano-el-gin-blackberry-smash-es-una-gran-bebida-para-cualquier-%C3%A9poca-del-a%C3%B1o-si-se-hace-207407046.jpg?w=768";
+  const imgLulo = "https://thumbs.dreamstime.com/b/jugo-de-lulo-una-fruta-ex%C3%B3tica-colombiana-tradicional-131906700.jpg?w=576";
+  const imgMocktail =
+    "https://upload.wikimedia.org/wikipedia/commons/e/e9/Mocktails_%28%22Virgin_mojito%22_and_%22Fresh%22%29_-_Le_Moulin_de_la_Galette%2C_Bayeux_2025-03-25.jpg";
+  const imgCaneca = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlYaacIWJKSjecNmm4C1CrjpbgPOcsFDGyYTMo_B-PCA&s";
   const imgShot = "https://upload.wikimedia.org/wikipedia/commons/f/fb/Three_shotglasses.jpg";
 
   await upsertProduct("Poker", cerveza.id, 7000, [{ insumoId: insumoPoker.id, quantity: 1 }], 1, imgPoker);
@@ -129,7 +131,7 @@ export async function runSeed(): Promise<void> {
       { insumoId: insumoZumoLimon.id, quantity: 20 },
     ],
     3,
-    imgMora,
+    imgMocktail,
   );
   await upsertProduct(
     "Mocktail lulo limonaria",
@@ -140,10 +142,10 @@ export async function runSeed(): Promise<void> {
       { insumoId: insumoZumoLimon.id, quantity: 20 },
     ],
     4,
-    imgLulo,
+    imgMocktail,
   );
 
-  await upsertProduct("Caneca Curao 350ml", viche.id, 50000, [{ insumoId: insumoViche.id, quantity: 350 }], 1, imgCaneca);
+  await upsertProduct("Caneca Vencedor 375ml", viche.id, 50000, [{ insumoId: insumoViche.id, quantity: 375 }], 1, imgCaneca);
   await upsertProduct("Shot Curao", viche.id, 10000, [{ insumoId: insumoViche.id, quantity: 50 }], 2, imgShot);
 
   console.log("Seed completado.");
